@@ -7,8 +7,9 @@
 //!    environment;
 //! 2. `.venv/bin/sqlakit-lsp` in the project;
 //! 3. `sqlakit-lsp` on the `PATH` of the project's shell;
-//! 4. `uvx sqlakit-lsp`, which installs it on first use, with the `sqlakit`
-//!    version the project's `uv.lock` holds.
+//! 4. `uvx sqlakit-lsp`, with the `sqlakit` version the project's `uv.lock`
+//!    holds. Without one, `uvx sqlakit-lsp@latest`, since `uvx` otherwise
+//!    keeps the version it installed first.
 //!
 //! Zed asks for the server in every Python project, so a project that does not
 //! depend on `sqlakit` gets none, unless the settings name one.
@@ -105,18 +106,30 @@ impl zed::Extension for SqlakitExtension {
                 ));
             }
         }
-        let mut uvx_args = Vec::new();
-        if let Some(version) = locked {
-            uvx_args.extend(["--with".to_string(), format!("sqlakit=={version}")]);
-        }
-        uvx_args.push(SERVER.to_string());
-        uvx_args.extend(args);
         Ok(zed::Command {
             command: uvx,
-            args: uvx_args,
+            args: uvx_args(locked.as_deref(), args),
             env,
         })
     }
+}
+
+/// The arguments of `uvx` that start the server.
+///
+/// With a locked `sqlakit`, the server runs with that version, and `uvx`
+/// resolves again whenever it changes. Without one, `@latest` has `uvx` look
+/// for a newer server on each start.
+fn uvx_args(locked: Option<&str>, args: Vec<String>) -> Vec<String> {
+    let mut uvx_args = Vec::new();
+    match locked {
+        Some(version) => {
+            uvx_args.extend(["--with".to_string(), format!("sqlakit=={version}")]);
+            uvx_args.push(SERVER.to_string());
+        }
+        None => uvx_args.push(format!("{SERVER}@latest")),
+    }
+    uvx_args.extend(args);
+    uvx_args
 }
 
 /// Whether a file of dependencies names `sqlakit` itself, and not only a
@@ -156,7 +169,7 @@ fn locked_version(lock: &str, package: &str) -> Option<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::{locked_version, names_sqlakit, reads};
+    use super::{locked_version, names_sqlakit, reads, uvx_args};
 
     const LOCK: &str = r#"version = 1
 
@@ -198,6 +211,19 @@ version = "0.1.0"
         assert!(!names_sqlakit("dependencies = [\"sqlakit-debugserver\"]"));
         assert!(!names_sqlakit("dependencies = [\"mysqlakitten\"]"));
         assert!(!names_sqlakit("dependencies = [\"flask\"]"));
+    }
+
+    #[test]
+    fn a_locked_sqlakit_is_the_one_the_server_runs_with() {
+        assert_eq!(
+            uvx_args(Some("0.22.0"), vec!["--stdio".into()]),
+            ["--with", "sqlakit==0.22.0", "sqlakit-lsp", "--stdio"]
+        );
+    }
+
+    #[test]
+    fn without_a_lock_the_server_is_the_latest() {
+        assert_eq!(uvx_args(None, Vec::new()), ["sqlakit-lsp@latest"]);
     }
 
     #[test]
