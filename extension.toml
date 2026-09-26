@@ -1,0 +1,11 @@
+id = "sqlakit"
+name = "SQLAKit"
+version = "0.1.0"
+schema_version = 1
+authors = ["Anton Ruhlov <antonruhlov@gmail.com>"]
+description = "Language server for SQLAKit SQL templates."
+repository = "https://github.com/sqlakit/sqlakit-zed"
+
+[language_servers.sqlakit-lsp]
+name = "SQLAKit"
+languages = ["SQL", "Python"]
