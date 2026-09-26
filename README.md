@@ -59,7 +59,7 @@ to that list, or keep `"..."` in it.
 
 [`sqlakit-example`](https://github.com/sqlakit/sqlakit-example) is a small
 project to try it on. Run `uv sync`, open it in Zed, open
-`shop/sql/users/search.sql` and type `tpl.`.
+`app/sql/users/search.sql` and type `tpl.`.
 
 ## Development
 
