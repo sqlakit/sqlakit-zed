@@ -29,8 +29,8 @@ The extension uses the first one it finds:
 1. `lsp.sqlakit-lsp.binary.path` in Zed's settings
 2. `.venv/bin/sqlakit-lsp` in the project
 3. `sqlakit-lsp` on the `PATH`
-4. `uvx sqlakit-lsp`, with the `sqlakit` version from the project's `uv.lock`,
-   or the latest server when the project has no `uv.lock`
+4. `uvx sqlakit-lsp`, a 0.2 release, with the `sqlakit` version from the
+   project's `uv.lock`
 
 The server starts only in projects that list `sqlakit` in `pyproject.toml`,
 `uv.lock` or `requirements.txt`. Set the path in the settings to start it
