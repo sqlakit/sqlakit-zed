@@ -20,7 +20,7 @@ const SERVER: &str = "sqlakit-lsp";
 /// The releases of the server this extension runs through `uvx`: the newest
 /// fix of one minor version, and never the next one, which may change what an
 /// editor is sent.
-const SERVERS: &str = "sqlakit-lsp>=0.2,<0.3";
+const SERVERS: &str = "sqlakit-lsp>=0.3,<0.4";
 
 /// The oldest `sqlakit` the server reads the templates of.
 const OLDEST: (u32, u32) = (0, 21);
@@ -225,7 +225,7 @@ version = "0.1.0"
                 "--with",
                 "sqlakit==0.22.0",
                 "--from",
-                "sqlakit-lsp>=0.2,<0.3",
+                "sqlakit-lsp>=0.3,<0.4",
                 "sqlakit-lsp",
                 "--stdio"
             ]
@@ -236,7 +236,7 @@ version = "0.1.0"
     fn without_a_lock_the_server_is_a_release_it_was_made_for() {
         assert_eq!(
             uvx_args(None, Vec::new()),
-            ["--from", "sqlakit-lsp>=0.2,<0.3", "sqlakit-lsp"]
+            ["--from", "sqlakit-lsp>=0.3,<0.4", "sqlakit-lsp"]
         );
     }
 
