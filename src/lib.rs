@@ -20,10 +20,10 @@ const SERVER: &str = "sqlakit-lsp";
 /// The releases of the server this extension runs through `uvx`: the newest
 /// fix of one minor version, and never the next one, which may change what an
 /// editor is sent.
-const SERVERS: &str = "sqlakit-lsp>=0.3,<0.4";
+const SERVERS: &str = "sqlakit-lsp>=0.4,<0.5";
 
 /// The oldest `sqlakit` the server reads the templates of.
-const OLDEST: (u32, u32) = (0, 21);
+const OLDEST: (u32, u32, u32) = (0, 22, 4);
 
 /// The files that say a project depends on `sqlakit`, read in this order.
 const DEPENDENCIES: [&str; 4] = [
@@ -104,9 +104,9 @@ impl zed::Extension for SqlakitExtension {
         if let Some(version) = &locked {
             if !reads(version) {
                 return Err(format!(
-                    "{SERVER} reads the templates of sqlakit {}.{} and newer, and \
+                    "{SERVER} reads the templates of sqlakit {}.{}.{} and newer, and \
                      uv.lock holds sqlakit {version}",
-                    OLDEST.0, OLDEST.1
+                    OLDEST.0, OLDEST.1, OLDEST.2
                 ));
             }
         }
@@ -149,9 +149,16 @@ fn names_sqlakit(text: &str) -> bool {
 
 /// Whether the server reads the templates of this `sqlakit` version.
 fn reads(version: &str) -> bool {
-    let mut parts = version.split('.').map(|part| part.parse::<u32>().ok());
-    match (parts.next().flatten(), parts.next().flatten()) {
-        (Some(major), Some(minor)) => (major, minor) >= OLDEST,
+    let mut parts = version.split('.');
+    let major = parts.next().and_then(|part| part.parse::<u32>().ok());
+    let minor = parts.next().and_then(|part| part.parse::<u32>().ok());
+    // The patch is read up to its first letter: `4rc1` is 4.
+    let patch = parts.next().map_or(Some(0), |part| {
+        let digits: String = part.chars().take_while(char::is_ascii_digit).collect();
+        digits.parse::<u32>().ok()
+    });
+    match (major, minor, patch) {
+        (Some(major), Some(minor), Some(patch)) => (major, minor, patch) >= OLDEST,
         // A version it cannot read is left to uv, which says what is wrong.
         _ => true,
     }
@@ -225,7 +232,7 @@ version = "0.1.0"
                 "--with",
                 "sqlakit==0.22.0",
                 "--from",
-                "sqlakit-lsp>=0.3,<0.4",
+                "sqlakit-lsp>=0.4,<0.5",
                 "sqlakit-lsp",
                 "--stdio"
             ]
@@ -236,16 +243,20 @@ version = "0.1.0"
     fn without_a_lock_the_server_is_a_release_it_was_made_for() {
         assert_eq!(
             uvx_args(None, Vec::new()),
-            ["--from", "sqlakit-lsp>=0.3,<0.4", "sqlakit-lsp"]
+            ["--from", "sqlakit-lsp>=0.4,<0.5", "sqlakit-lsp"]
         );
     }
 
     #[test]
-    fn the_server_reads_sqlakit_from_0_21() {
-        assert!(reads("0.21.0"));
-        assert!(reads("0.22.3"));
+    fn the_server_reads_sqlakit_from_0_22_4() {
+        assert!(reads("0.22.4"));
+        assert!(reads("0.22.10"));
+        assert!(reads("0.23.0"));
+        assert!(reads("0.23"));
         assert!(reads("1.0.0"));
-        assert!(!reads("0.20.0"));
+        assert!(reads("0.22.4rc1"));
+        assert!(!reads("0.22.3"));
+        assert!(!reads("0.21.9"));
         assert!(reads("not a version"));
     }
 }

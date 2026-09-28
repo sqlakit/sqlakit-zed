@@ -3,8 +3,8 @@
 A [Zed](https://zed.dev) extension for [SQLAKit](https://sqlakit.readthedocs.io/en/stable/)
 templates. It runs [`sqlakit-lsp`](https://github.com/sqlakit/sqlakit-lsp),
 which shows errors as you type, completes macro names, shows the SQL a macro
-writes on hover, and finds definitions and references. It needs `sqlakit` 0.21
-or newer.
+writes on hover, and finds definitions and references. It needs `sqlakit`
+0.22.4 or newer.
 
 ## Install
 
@@ -29,7 +29,7 @@ The extension uses the first one it finds:
 1. `lsp.sqlakit-lsp.binary.path` in Zed's settings
 2. `.venv/bin/sqlakit-lsp` in the project
 3. `sqlakit-lsp` on the `PATH`
-4. `uvx sqlakit-lsp`, a 0.3 release, with the `sqlakit` version from the
+4. `uvx sqlakit-lsp`, a 0.4 release, with the `sqlakit` version from the
    project's `uv.lock`
 
 The server starts only in projects that list `sqlakit` in `pyproject.toml`,
